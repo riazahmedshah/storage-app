@@ -1,14 +1,18 @@
-import express from "express";
+import express, { Request } from "express";
 import { open, opendir, rename } from "node:fs/promises";
+import path from "node:path";
 const app = express();
 const PORT =  4000;
 
 
 app.use(express.json());
 
-app.get("/allfiles", async(req,res) => {
+app.get("/allfiles{/*dirName}", async(req:Request<{dirName: string[]}>,res) => {
+  const {dirName} = req.params;
+  const dirPath = dirName?.join('/')
+  const targetPath = path.join(`${import.meta.dirname}/public`, dirPath ?? "");
   try {
-    const info = await opendir(`${import.meta.dirname}/public`);
+    const info = await opendir(targetPath);
     const filesData = [];
     for await (const data of info){
       const file = {
