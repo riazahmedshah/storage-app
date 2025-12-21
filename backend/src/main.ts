@@ -1,5 +1,5 @@
 import express from "express";
-import { opendir, rename } from "node:fs/promises";
+import { open, opendir, rename } from "node:fs/promises";
 const app = express();
 const PORT =  4000;
 
@@ -26,8 +26,50 @@ app.get("/allfiles", async(req,res) => {
   }
 });
 
+app.post("/trash/:filename", async(req, res) => {
+  const {filename} = req.params;
 
-app.patch("rename/:filename", async(req, res) => {
+  try {
+    await rename(
+      `${import.meta.dirname}/public/${filename}`,
+      `${import.meta.dirname}/trash/${filename}`
+    );
+    res.status(200).json({
+      msg:`File ${filename} Deleted successfully`
+    });
+  } catch (error:any) {
+    if(error.code == 'ENOENT'){
+      console.error(error);
+      res.status(404).json({msg:`File ${filename} not found`});
+    }else{
+      res.status(500).json({ msg: "An internal error occurred in trash API" });
+    }
+  }
+});
+
+app.post("/createFile", async(req, res) => {
+  const filename = req.header("filename");
+  if(!filename) return res.status(404).json({msg:"Filename is missing"});
+  try {
+    const fileHandle = await open(filename, 'w');
+
+    const writeStream = fileHandle.createWriteStream();
+    res.pipe(writeStream);
+
+    writeStream.on('error', (err) => {
+      console.error('WriteStream Error', err);
+      res.status(400).json({msg:'Failed to write file'});
+    });
+
+    writeStream.on('finish', () => {
+      console.log(`File: ${filename} Uploaded successfully`);
+    })
+  } catch (error) {
+    
+  }
+})
+
+app.patch("/rename/:filename", async(req, res) => {
   const {filename} = req.params
   const {newFileName} = req.body;
 
@@ -42,9 +84,9 @@ app.patch("rename/:filename", async(req, res) => {
     });
   } catch (error:any) {
     if(error.code == 'ENOENT'){
-      console.error(error);
       res.status(404).json({msg:`File ${filename} not found`});
     }else{
+      console.error(error);
       res.status(500).json({ msg: "An internal error occurred" });
     }
   }
