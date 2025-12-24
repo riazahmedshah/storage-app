@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.get("/allfiles{/*dirName}", async(req:Request<{dirName: string[]}>,res) => {
   const {dirName} = req.params;
-  const dirPath = dirName?.join('/')
+  const dirPath = path.join('/', dirName?.join('/'))
   const targetPath = path.join(`${import.meta.dirname}/public`, dirPath ?? "");
   try {
     const info = await opendir(targetPath);
@@ -83,7 +83,7 @@ app.post("/new-file{/*filename}", async(req, res) => {
 
 app.post("/new-folder{/*folderpath}", async(req:Request<{folderpath: string[]}>, res) => {
   const { folderpath } = req.params;
-  const fullpath = folderpath?.join("/");
+  const fullpath = path.join('/', folderpath?.join('/'))
   const targetPath = path.join(`${import.meta.dirname}/public/`, fullpath ?? "");
 
   try {
