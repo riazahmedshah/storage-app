@@ -106,12 +106,16 @@ router.patch("/rename{/*filename}", async(req:Request<{filename: string[]}>, res
   }
 });
 
-router.get('{/*filename}', (req:Request<{filename:string[]}>, res) => {
-  const { filename } = req.params;
-  const pathToFile = filename.join("/");
-  const targetPath = path.join("/", pathToFile);
-
-  res.sendFile(`${process.cwd()}/src/public/${targetPath}`);
+router.get('{/:id}', (req, res) => {
+  const { id } = req.params;
+  const srcPath = getSrcPath();
+  const fileData = filesData.find((file) => file.id === id);
+ //  console.log(fileData);
+ //  console.log(srcPath);
+  if(req.query.action === 'download'){
+    res.set('Content-Dispositon', 'attachment');
+  }
+  res.sendFile(`${srcPath}/public/${id}${fileData?.ext}`);
 });
 
-export default router;
+export default router

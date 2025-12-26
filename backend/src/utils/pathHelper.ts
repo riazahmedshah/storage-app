@@ -3,7 +3,6 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-
 export const getPublicPath = (...paths: string[]): string => {
   return path.join(__dirname, '..', 'public', ...paths);
 }
