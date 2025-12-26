@@ -1,8 +1,20 @@
 import { Request, Router } from "express"
-import { open, rename } from "node:fs/promises";
+import { open, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import filesDB from "../filesDB.json" with {type:'json'}
+
+
+import {getPublicPath, getSrcPath} from "../utils/pathHelper.js";
 
 const router:Router = Router();
+
+interface fileEntry{
+  id:string;
+  name:string;
+  ext:string;
+}
+
+const filesData = filesDB as fileEntry[];
 
 router.post("/trash{/*filename}", async(req:Request<{filename: string[]}>, res) => {
   const {filename} = req.params;
@@ -26,12 +38,14 @@ router.post("/trash{/*filename}", async(req:Request<{filename: string[]}>, res) 
   }
 });
 
-// TODO: handle proper paths...
 router.post("/:filename", async(req, res) => {
   const {filename} = req.params;
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
+  const ext = path.extname(filename);
+  const fileID = crypto.randomUUID();
+  const targetPath = getPublicPath(fileID);
   try {
-    const fileHandle = await open(`${process.cwd()}/src/public/${filename}`, 'w');
+    const fileHandle = await open(`${targetPath}${ext}`, 'w');
 
     const writeStream = fileHandle.createWriteStream();
     req.pipe(writeStream);
@@ -41,8 +55,16 @@ router.post("/:filename", async(req, res) => {
       res.status(400).json({msg:'Failed to write file'});
     });
 
-    writeStream.on('finish', () => {
+    writeStream.on('finish', async() => {
+      filesData.push({
+        name: filename, 
+        id:fileID,
+        ext
+      });
       console.log(`File: ${filename} Uploaded successfully`);
+      const srcPath = getSrcPath();
+     await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData));
+     console.log(filesData); 
     });
 
     res.status(200).json({msg:`File ${filename} created successfully`});
