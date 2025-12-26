@@ -27,14 +27,14 @@ router.post("/trash{/*filename}", async(req:Request<{filename: string[]}>, res) 
 });
 
 // TODO: handle proper paths...
-router.post("/new-file{/*filename}", async(req, res) => {
-  const filename = req.header("filename");
+router.post("/:filename", async(req, res) => {
+  const {filename} = req.params;
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
   try {
-    const fileHandle = await open(`${import.meta.dirname}/public/${filename}`, 'w');
+    const fileHandle = await open(`${process.cwd()}/src/public/${filename}`, 'w');
 
     const writeStream = fileHandle.createWriteStream();
-    res.pipe(writeStream);
+    req.pipe(writeStream);
 
     writeStream.on('error', (err) => {
       console.error('WriteStream Error', err);
@@ -48,6 +48,7 @@ router.post("/new-file{/*filename}", async(req, res) => {
     res.status(200).json({msg:`File ${filename} created successfully`});
   } catch (error:any) {
     if(error.code == 'ENOENT'){
+      console.error(error)
       res.status(404).json({msg:`File ${filename} not found`});
     }else{
       console.error(error);
