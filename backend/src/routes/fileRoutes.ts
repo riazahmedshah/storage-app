@@ -79,22 +79,29 @@ router.post("/:filename", async(req, res) => {
   }
 });
 
-router.patch("/rename{/*filename}", async(req:Request<{filename: string[]}>, res) => {
-  const {filename} = req.params
+router.patch("/:id", async(req, res) => {
+  const {id} = req.params //  64113323-d41f-4af1-bd6f-697c70c22319
   const {newFileName} = req.body;
-
-  const dirPath = filename.join("/");
-  const targetPath = path.join("/", dirPath);
-  const renameTarget = `src/public/${path.dirname(dirPath)}/${newFileName}`
-
+  //console.log(req.body)
+  const file = filesData.find((file) => file.id === id);
+  
+  const targetPath = getPublicPath();
+  const srcPath = getSrcPath()
   try {
-    await rename(
-      `${process.cwd()}/src/public${targetPath}`, 
-      `${process.cwd()}/${renameTarget}`
-    );
+    const name = newFileName
+    const updatedObj = {...file, name};
+   
+   const updatedFilesData = filesData.map((file) => {
+     if(file.id === updatedObj.id){
+       return updatedObj;
+     }
+     return file;
+   });
+
+   await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(updatedFilesData));  
 
     res.status(200).json({
-      msg:`File Renamed successfully from ${filename} to ${newFileName}`
+      msg:`File Renamed successfully from ${file?.name} to ${newFileName}`
     });
   } catch (error:any) {
     if(error.code == 'ENOENT'){
