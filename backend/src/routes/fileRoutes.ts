@@ -1,5 +1,5 @@
-import { Request, Router } from "express"
-import { open, rename, writeFile } from "node:fs/promises";
+import { Router } from "express"
+import { open, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import filesDB from "../filesDB.json" with {type:'json'}
 
@@ -15,39 +15,21 @@ interface fileEntry{
 }
 
 const filesData = filesDB as fileEntry[];
-
-router.post("/trash{/*filename}", async(req:Request<{filename: string[]}>, res) => {
-  const {filename} = req.params;
-  const filePath = filename.join("/");
-  const targetPath = path.join("/", filePath);
-  try {
-    await rename(
-      `${process.cwd()}/src/public/${targetPath}`,
-      `${process.cwd()}/src/trash/${targetPath}`
-    );
-    res.status(200).json({
-      msg:`File ${filename} Deleted successfully`
-    });
-  } catch (error:any) {
-    if(error.code == 'ENOENT'){
-      console.error(error);
-      res.status(404).json({msg:`File ${filename} not found`});
-    }else{
-      res.status(500).json({ msg: "An internal error occurred in trash API" });
-    }
-  }
-});
-
+// CREATE
 router.post("/:filename", async(req, res) => {
   const {filename} = req.params;
+
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
+
   const ext = path.extname(filename);
   const fileID = crypto.randomUUID();
+
   const targetPath = getPublicPath(fileID);
+
   try {
     const fileHandle = await open(`${targetPath}${ext}`, 'w');
-
     const writeStream = fileHandle.createWriteStream();
+
     req.pipe(writeStream);
 
     writeStream.on('error', (err) => {
@@ -63,8 +45,8 @@ router.post("/:filename", async(req, res) => {
       });
       console.log(`File: ${filename} Uploaded successfully`);
       const srcPath = getSrcPath();
-     await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData));
-     console.log(filesData); 
+      await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
+
     });
 
     res.status(200).json({msg:`File ${filename} created successfully`});
@@ -79,29 +61,40 @@ router.post("/:filename", async(req, res) => {
   }
 });
 
+// READ
+router.get('{/:id}', (req, res) => {
+  const { id } = req.params;
+  const srcPath = getSrcPath();
+
+  const fileData = filesData.find((file) => file.id === id);
+  if (!fileData) {
+    return res.status(404).send("File not found");
+  }
+
+  if(req.query.action === 'download'){
+    res.set('Content-Dispositon', 'attachment');
+  }
+  res.sendFile(`${srcPath}/public/${id}${fileData?.ext}`);
+});
+
+// UPADATE
 router.patch("/:id", async(req, res) => {
-  const {id} = req.params //  64113323-d41f-4af1-bd6f-697c70c22319
+  const {id} = req.params // 64113323-d41f-4af1-bd6f-697c70c22319
   const {newFileName} = req.body;
-  //console.log(req.body)
-  const file = filesData.find((file) => file.id === id);
-  
+
   const targetPath = getPublicPath();
   const srcPath = getSrcPath()
+
+  const fileData = filesData.find((file) => file.id === id);
+  if (!fileData) {
+    return res.status(404).send("File not found");
+  }
   try {
-    const name = newFileName
-    const updatedObj = {...file, name};
-   
-   const updatedFilesData = filesData.map((file) => {
-     if(file.id === updatedObj.id){
-       return updatedObj;
-     }
-     return file;
-   });
-
-   await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(updatedFilesData));  
-
+    fileData.name = `${newFileName}${fileData.ext}`;
+    await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
+  
     res.status(200).json({
-      msg:`File Renamed successfully from ${file?.name} to ${newFileName}`
+      msg:`File Renamed successfully to ${newFileName}${fileData.ext}`
     });
   } catch (error:any) {
     if(error.code == 'ENOENT'){
@@ -113,16 +106,37 @@ router.patch("/:id", async(req, res) => {
   }
 });
 
-router.get('{/:id}', (req, res) => {
-  const { id } = req.params;
+// DELETE
+router.delete("/:id", async(req, res) => {
+  const {id} = req.params;
+  const publicPath = getPublicPath();
   const srcPath = getSrcPath();
-  const fileData = filesData.find((file) => file.id === id);
- //  console.log(fileData);
- //  console.log(srcPath);
-  if(req.query.action === 'download'){
-    res.set('Content-Dispositon', 'attachment');
+
+  const fileIdx = filesData.findIndex((file) => file.id === id);
+  const fileData = filesData[fileIdx];
+  try {
+    await rm(
+      `${publicPath}/${id}${fileData?.ext}`
+    );
+
+    filesData.splice(fileIdx, 1);
+    await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
+    res.status(200).json({
+      msg:`File ${fileData?.name} Deleted successfully`
+    });
+  } catch (error:any) {
+    if(error.code == 'ENOENT'){
+      console.error(error);
+      res.status(404).json({msg:`File ${fileData?.name} not found`});
+    }else{
+      res.status(500).json({ msg: "An internal error occurred in trash API" });
+    }
   }
-  res.sendFile(`${srcPath}/public/${id}${fileData?.ext}`);
 });
+
+
+
+
+
 
 export default router
