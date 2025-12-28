@@ -2,19 +2,15 @@ import { Router } from "express"
 import { open, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import filesDB from "../filesDB.json" with {type:'json'}
-
-
+import dirDb from "../directoriesDB.json" with {type: 'json'};
+import { dirEntry, fileEntry} from "../types/index.js"
 import {getPublicPath, getSrcPath} from "../utils/pathHelper.js";
 
 const router:Router = Router();
 
-interface fileEntry{
-  id:string;
-  name:string;
-  ext:string;
-}
-
 const filesData = filesDB as fileEntry[];
+const dirsData = dirDb as dirEntry[];
+
 // CREATE
 router.post("/:filename", async(req, res) => {
   const {filename} = req.params;
@@ -120,7 +116,11 @@ router.delete("/:id", async(req, res) => {
     );
 
     filesData.splice(fileIdx, 1);
+    const parentDirData = dirsData.find((dir) => dir.id === fileData?.parentDir)!;
+    parentDirData.files = parentDirData?.files.filter((fileId) => fileId !== id);
+
     await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
+    await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
     res.status(200).json({
       msg:`File ${fileData?.name} Deleted successfully`
     });

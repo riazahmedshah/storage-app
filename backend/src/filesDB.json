@@ -1,12 +1,8 @@
 [
   {
-    "name": "typescript.pdf",
-    "id": "4e488370-6364-47bc-ac00-56b947525975",
-    "ext": ".pdf"
-  },
-  {
     "name": "quorum.mp4",
     "id": "447ff2e8-dc6b-42f7-aaf3-fa44b53db0d5",
-    "ext": ".mp4"
+    "ext": ".mp4",
+    "parentDir": "25bb4fd1-7428-446e-ace1-d6e5c3b91c8e"
   }
 ]
