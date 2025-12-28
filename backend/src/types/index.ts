@@ -2,13 +2,13 @@ export interface fileEntry {
   id: string;
   name: string;
   ext: string;
-  parentDir: string;
+  parentDirId: string;
 }
 
 export interface dirEntry {
   id: string;
   name: string;
-  parentDir: string | null;
+  parentDirId: string | null;
   files: string[];
   directories: string[];
 }

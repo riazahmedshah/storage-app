@@ -14,9 +14,12 @@ const dirsData = dirDb as dirEntry[];
 // CREATE
 router.post("/:filename", async(req, res) => {
   const {filename} = req.params;
+  const parentDirId = req.header("parentDirId") || dirsData[0]?.id;
 
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
-
+  if (!parentDirId) {
+    return res.status(400).send("Missing Parent Directory ID");
+  }
   const ext = path.extname(filename);
   const fileID = crypto.randomUUID();
 
@@ -37,13 +40,19 @@ router.post("/:filename", async(req, res) => {
       filesData.push({
         name: filename, 
         id:fileID,
-        ext
+        ext,
+        parentDirId
       });
+
+      const parentDirData = dirsData.find((dir) => dir.id === parentDirId);
+      parentDirData?.files.push(fileID);
       console.log(`File: ${filename} Uploaded successfully`);
       const srcPath = getSrcPath();
       await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
-
+      await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
     });
+
+
 
     res.status(200).json({msg:`File ${filename} created successfully`});
   } catch (error:any) {
@@ -116,7 +125,7 @@ router.delete("/:id", async(req, res) => {
     );
 
     filesData.splice(fileIdx, 1);
-    const parentDirData = dirsData.find((dir) => dir.id === fileData?.parentDir)!;
+    const parentDirData = dirsData.find((dir) => dir.id === fileData?.parentDirId)!;
     parentDirData.files = parentDirData?.files.filter((fileId) => fileId !== id);
 
     await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
@@ -133,10 +142,5 @@ router.delete("/:id", async(req, res) => {
     }
   }
 });
-
-
-
-
-
 
 export default router
