@@ -8,7 +8,7 @@ export interface fileEntry {
 export interface dirEntry {
   id: string;
   name: string;
-  parentDirId: string | null;
+  parentDirId?: string | null;
   files: string[];
   directories: string[];
 }

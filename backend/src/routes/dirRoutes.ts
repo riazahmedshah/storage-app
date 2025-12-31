@@ -1,9 +1,9 @@
-import { Request, Router } from "express"
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
+import { Router } from "express"
+import { writeFile } from "node:fs/promises";
 import dirDb from "../directoriesDB.json" with {type: 'json'};
 import filesDB from "../filesDB.json" with {type: 'json'};
 import { dirEntry, fileEntry} from "../types/index.js"
+import { getSrcPath } from "../utils/pathHelper.js";
 
 const router: Router = Router();
 
@@ -27,20 +27,28 @@ router.get("{/:id}", async (req, res) => {
   }
 });
 
-router.post("{/*folderpath}", async (req: Request<{ folderpath: string[] }>, res) => {
-  const { folderpath } = req.params;
-  const fullpath = path.join('/', folderpath?.join('/'))
-  const targetPath = path.join(`${process.cwd()}/src/public/`, fullpath ?? "");
+router.post("{/:dirParentId}", async (req, res) => {
+  const { dirParentId } = req.params || dirsData[0]?.id;
+  const {dirName} = req.body;
+  const srcPath = getSrcPath();
+  const id = crypto.randomUUID();
+
+  const parentDir = dirsData.find((dir) => dir.id === dirParentId);
+  parentDir?.directories.push(id);
+
+  dirsData.push({
+    id,
+    name:dirName,
+    parentDirId:dirParentId,
+    files:[],
+    directories:[]
+  });
   try {
-    await mkdir(targetPath, { recursive: false });
+    await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
     res.status(200).json({ msg: "Directory created." })
-  } catch (error: any) {
-    if (error.code === 'EEXIST') {
-      res.status(409).json({ msg: `Directory ${fullpath} Already Exists` })
-    } else {
+  } catch (error) {
       console.error(error);
       res.status(500).json({ msg: "Error in Dir API" });
-    }
   }
 });
 

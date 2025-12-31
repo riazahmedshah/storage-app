@@ -51,9 +51,6 @@ router.post("/:filename", async(req, res) => {
       await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
       await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
     });
-
-
-
     res.status(200).json({msg:`File ${filename} created successfully`});
   } catch (error:any) {
     if(error.code == 'ENOENT'){

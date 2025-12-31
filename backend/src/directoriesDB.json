@@ -7,6 +7,15 @@
       "447ff2e8-dc6b-42f7-aaf3-fa44b53db0d5",
       "ae8344dd-c132-4163-8010-61245e7df221"
     ],
+    "directories": [
+      "17e84b99-e15f-4a6f-a2ba-1817c61056a5"
+    ]
+  },
+  {
+    "id": "17e84b99-e15f-4a6f-a2ba-1817c61056a5",
+    "name": "test",
+    "parentDirId": "25bb4fd1-7428-446e-ace1-d6e5c3b91c8e",
+    "files": [],
     "directories": []
   }
 ]
