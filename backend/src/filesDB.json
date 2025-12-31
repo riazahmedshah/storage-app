@@ -10,5 +10,11 @@
     "id": "ae8344dd-c132-4163-8010-61245e7df221",
     "ext": ".pdf",
     "parentDirId": "25bb4fd1-7428-446e-ace1-d6e5c3b91c8e"
+  },
+  {
+    "name": "test.txt",
+    "id": "3ad7649e-dc30-4fc3-b423-d5ff986952c9",
+    "ext": ".txt",
+    "parentDirId": "17e84b99-e15f-4a6f-a2ba-1817c61056a5"
   }
 ]

@@ -15,6 +15,17 @@
     "id": "17e84b99-e15f-4a6f-a2ba-1817c61056a5",
     "name": "test",
     "parentDirId": "25bb4fd1-7428-446e-ace1-d6e5c3b91c8e",
+    "files": [
+      "3ad7649e-dc30-4fc3-b423-d5ff986952c9"
+    ],
+    "directories": [
+      "3d390a4c-34d6-4d94-bbde-360403e3dfdf"
+    ]
+  },
+  {
+    "id": "3d390a4c-34d6-4d94-bbde-360403e3dfdf",
+    "name": "nested test",
+    "parentDirId": "17e84b99-e15f-4a6f-a2ba-1817c61056a5",
     "files": [],
     "directories": []
   }
