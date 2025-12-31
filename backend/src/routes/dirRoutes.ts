@@ -24,29 +24,6 @@ const dirsData = dirDb as dirEntry[];
   res.json({ ...dirData, files: filesInfo, directories: dirsInfo });
 });
 
-// router.get("{/:id}", async (req, res) => {
-//   const { id } = req.params;
-//   const targetId = id || dirsData[0]?.id;
-
-//   // This function transforms a directory (and all its children)
-//   const populateDir = (dirId:any):any => {
-//     const dir = dirsData.find((d) => d.id === dirId);
-//     if (!dir) return null;
-
-//     return {
-//       ...dir,
-//       // Recursively populate every sub-directory found inside this one
-//       directories: dir.directories.map((subDirId) => populateDir(subDirId)),
-//       // Populate the files for this specific level
-//       files: dir.files.map((fileId) => filesData.find((f) => f.id === fileId))
-//     };
-//   };
-
-//   const fullData = populateDir(targetId);
-  
-//   if (!fullData) return res.status(404).json({ error: "Not found" });
-//   res.json(fullData);
-// });
 
 router.post("{/:dirParentId}", async (req, res) => {
   const { dirParentId } = req.params || dirsData[0]?.id;
