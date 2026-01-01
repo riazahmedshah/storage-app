@@ -50,8 +50,24 @@ router.post("{/:dirParentId}", async (req, res) => {
   res.json({ ...dirData, files: filesInfo, directories: dirsInfo });
 });
 
-// DELETE
+// UPDATE
+router.patch("/:dirId", async(req, res) => {
+  const { dirId } = req.params;
+  const {newDirName} = req.body;
+  const srcPath = getSrcPath();
 
+  const dirData = dirsData?.find((dir) => dir.id === dirId)!;
+  dirData.name = newDirName;
+  try {
+    await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
+    res.status(200).json({mag:"Renamed successfully!"})
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({msg:"Error in update DirName api"})
+  }
+})
+
+// DELETE
 router.delete("/:id", async(req, res) => {
   const {id} = req.params;
   const publicPath = getPublicPath();
