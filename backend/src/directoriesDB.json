@@ -1,12 +1,10 @@
 [
   {
-    "id": "25bb4fd1-7428-446e-ace1-d6e5c3b91c8e",
-    "name": "root",
+    "id": "88506440-faf7-44a4-8ba6-1f29d97c9b92",
+    "userId": "e4d0fe15-880b-4e06-8d86-8ea8489aea28",
     "parentDirId": null,
-    "files": [
-      "447ff2e8-dc6b-42f7-aaf3-fa44b53db0d5",
-      "ae8344dd-c132-4163-8010-61245e7df221"
-    ],
+    "name": "root-test@gmail.com",
+    "files": [],
     "directories": []
   }
 ]

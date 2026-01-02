@@ -12,9 +12,9 @@ const filesData = filesDB as fileEntry[];
 const dirsData = dirDb as dirEntry[];
 
 // CREATE
-router.post("/:filename", async(req, res) => {
-  const {filename} = req.params;
-  const parentDirId = req.header("parentDirId") || dirsData[0]?.id;
+router.post("/:parentDirId", async(req, res) => {
+  const {parentDirId} = req.params || dirsData[0]?.id;
+  const filename = req.header("filename") || 'untitled';
 
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
   if (!parentDirId) {
@@ -36,7 +36,7 @@ router.post("/:filename", async(req, res) => {
       res.status(400).json({msg:'Failed to write file'});
     });
 
-    writeStream.on('finish', async() => {
+    writeStream.on('end', async() => {
       filesData.push({
         name: filename, 
         id:fileID,
