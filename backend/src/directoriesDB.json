@@ -6,5 +6,41 @@
     "name": "root-test@gmail.com",
     "files": [],
     "directories": []
+  },
+  {
+    "id": "5dab1fb2-67e4-4410-a9ec-a8329bf8d2a3",
+    "userId": "a670e4a8-95b3-4fd3-a7fb-ee2a7086ec38",
+    "parentDirId": null,
+    "name": "root-test1@gmail.com",
+    "files": [],
+    "directories": [
+      "dcd65705-9463-4b4e-9a45-7d7b9480fff1"
+    ]
+  },
+  {
+    "id": "59edf28f-cf2a-4ed6-b86e-5f83090000cf",
+    "userId": "7a6bfeaa-922c-4573-b4ce-93efcddf873f",
+    "parentDirId": null,
+    "name": "root-test2@gmail.com",
+    "files": [],
+    "directories": []
+  },
+  {
+    "id": "dcd65705-9463-4b4e-9a45-7d7b9480fff1",
+    "name": "Random test1",
+    "userId": "a670e4a8-95b3-4fd3-a7fb-ee2a7086ec38",
+    "parentDirId": "5dab1fb2-67e4-4410-a9ec-a8329bf8d2a3",
+    "files": [],
+    "directories": [
+      "8f8b542b-37ea-41b1-927d-6deb77118d15"
+    ]
+  },
+  {
+    "id": "8f8b542b-37ea-41b1-927d-6deb77118d15",
+    "name": "Random test1 nested",
+    "userId": "a670e4a8-95b3-4fd3-a7fb-ee2a7086ec38",
+    "parentDirId": "dcd65705-9463-4b4e-9a45-7d7b9480fff1",
+    "files": [],
+    "directories": []
   }
 ]

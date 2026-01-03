@@ -1,18 +1,23 @@
 import { Router } from "express";
 import { rm, writeFile } from "node:fs/promises";
+import userDB from "../userDB.json" with {type: 'json'}
 import dirDb from "../directoriesDB.json" with {type: 'json'};
 import filesDB from "../filesDB.json" with {type: 'json'};
-import { dirEntry, fileEntry } from "../types/index.js";
+import { dirEntry, fileEntry, userEntry } from "../types/index.js";
 import { getPublicPath, getSrcPath } from "../utils/pathHelper.js";
 
 const router: Router = Router();
 
 let filesData = filesDB as fileEntry[];
 let dirsData = dirDb as dirEntry[];
-
+const usersData = userDB as userEntry[];
 // CREATE
 router.post("{/:dirParentId}", async (req, res) => {
-  const { dirParentId } = req.params || dirsData[0]?.id;
+  const {uid} = req.cookies;
+  const userData = usersData.find((user) => user.id === uid);
+  const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId)!;
+  const dirParentId = req.params.dirParentId || userRootDir.id;
+  // console.log(userRootDir.id,dirParentId);
   const dirname = req.header('dirname') || 'New Folder';
   const srcPath = getSrcPath();
   const id = crypto.randomUUID();
@@ -23,6 +28,7 @@ router.post("{/:dirParentId}", async (req, res) => {
   dirsData.push({
     id,
     name: dirname,
+    userId:uid,
     parentDirId: dirParentId,
     files: [],
     directories: [],
@@ -42,15 +48,23 @@ router.post("{/:dirParentId}", async (req, res) => {
 // READ
 router.get("{/:id}", async (req, res) => {
   const { id } = req.params;
+  const {uid} = req.cookies;
 
-  const dirData = id ? dirsData.find((dir) => dir.id === id) : dirsData[0];
+  const userData = usersData.find((user) => user.id === uid);
+  const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId);
+
+  const dirData = id ? dirsData.find((dir) => dir.id === id) : userRootDir;
   if (!dirData)
     return res.status(404).json({ message: "Directory not found!" });
   const filesInfo = dirData?.files.map((fileId) =>
     filesData.find((file) => file.id === fileId)
   );
   const dirsInfo = dirData?.directories.map((dirId) =>
-    dirsData.find((dir) => dir.id === dirId)
+    dirsData.find((dir) => {
+      return(
+        dir.userId === uid && dir.id === dirId // BUG
+      )
+    })
   );
   res.json({ ...dirData, files: filesInfo, directories: dirsInfo });
 });

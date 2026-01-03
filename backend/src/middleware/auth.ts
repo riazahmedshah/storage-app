@@ -12,7 +12,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     return res.status(401).json({ error: "No authentication cookie found" });
   }
 
-  const isUserExists = usersData.find((user) => user.rootDirId === uid);
+  const isUserExists = usersData.find((user) => user.id === uid);
 
   if (isUserExists) {
 

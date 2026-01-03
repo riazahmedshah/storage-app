@@ -5,5 +5,19 @@
     "email": "test@gmail.com",
     "password": "1234",
     "rootDirId": "88506440-faf7-44a4-8ba6-1f29d97c9b92"
+  },
+  {
+    "id": "a670e4a8-95b3-4fd3-a7fb-ee2a7086ec38",
+    "name": "test1",
+    "email": "test1@gmail.com",
+    "password": "1234",
+    "rootDirId": "5dab1fb2-67e4-4410-a9ec-a8329bf8d2a3"
+  },
+  {
+    "id": "7a6bfeaa-922c-4573-b4ce-93efcddf873f",
+    "name": "test2",
+    "email": "test2@gmail.com",
+    "password": "1234",
+    "rootDirId": "59edf28f-cf2a-4ed6-b86e-5f83090000cf"
   }
 ]
