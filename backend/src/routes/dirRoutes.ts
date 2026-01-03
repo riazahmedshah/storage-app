@@ -56,15 +56,15 @@ router.get("{/:id}", async (req, res) => {
   const dirData = id ? dirsData.find((dir) => dir.id === id) : userRootDir;
   if (!dirData)
     return res.status(404).json({ message: "Directory not found!" });
+
+  if(dirData.userId !== uid){
+    return res.status(401).json({ message: "You don't have permission!" });
+  }
   const filesInfo = dirData?.files.map((fileId) =>
     filesData.find((file) => file.id === fileId)
   );
   const dirsInfo = dirData?.directories.map((dirId) =>
-    dirsData.find((dir) => {
-      return(
-        dir.userId === uid && dir.id === dirId // BUG
-      )
-    })
+    dirsData.find((dir) => dir.id === dirId)
   );
   res.json({ ...dirData, files: filesInfo, directories: dirsInfo });
 });
