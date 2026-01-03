@@ -12,6 +12,10 @@ const dirsData = dirDb as dirEntry[];
 
 router.post("/register", async(req, res) => {
   const {name, email, password} = req.body;
+  const isUserExists = userDB.find((user) => user.email === email);
+  if(isUserExists){
+    return res.status(409).json({msg:"Try using different email."})
+  }
   const userId = crypto.randomUUID();
   const rootDirId = crypto.randomUUID();
   const srcPath = getSrcPath();
@@ -39,12 +43,15 @@ router.post("/register", async(req, res) => {
 router.post('/login', (req, res) => {
   const {email, password} = req.body;
   const user = usersData.find((usr) => usr.email === email);
-  if(!user) return res.status(404).json({msg:"Email not found!"});
-  if(user.password === password){
+  if(!user || user.password !== password) return res.status(404).json({msg:"Invalid credentials"});
+  try{
     const {password, ...userSafe} = user;
+    res.cookie('uid', user.id, {
+      maxAge: 60*60*1000
+    });
     res.status(200).json({userSafe});
-  } else{
-    res.status(400).json({msg:"No user found"});
+  } catch{
+    res.status(500).json({msg:"Something went wrong: LOGIN"});
   }
 })
 

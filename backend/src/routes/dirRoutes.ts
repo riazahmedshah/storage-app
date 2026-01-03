@@ -42,6 +42,7 @@ router.post("{/:dirParentId}", async (req, res) => {
 // READ
 router.get("{/:id}", async (req, res) => {
   const { id } = req.params;
+
   const dirData = id ? dirsData.find((dir) => dir.id === id) : dirsData[0];
   if (!dirData)
     return res.status(404).json({ message: "Directory not found!" });
