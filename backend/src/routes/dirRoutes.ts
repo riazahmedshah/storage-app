@@ -13,22 +13,25 @@ let dirsData = dirDb as dirEntry[];
 const usersData = userDB as userEntry[];
 // CREATE
 router.post("{/:dirParentId}", async (req, res) => {
-  const {uid} = req.cookies;
-  const userData = usersData.find((user) => user.id === uid);
-  // const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId)!;
-  const dirParentId = req.params.dirParentId || userData?.rootDirId;
-  // console.log(userRootDir.id,dirParentId);
+  const {id:userId, rootDirId} = req.user;
+  const dirParentId = req.params.dirParentId || rootDirId;
+
   const dirname = req.header('dirname') || 'New Folder';
   const srcPath = getSrcPath();
   const id = crypto.randomUUID();
 
   const parentDir = dirsData.find((dir) => dir.id === dirParentId);
-  if(!parentDir) return res.status(404).json({message: "Parent Directory Does not exist!"})
+  if(!parentDir) return res.status(404).json({message: "Parent Directory Does not exist!"});
+
+  if(parentDir.userId !== userId){
+    return res.status(404).json({message: "Chala ja BSDK..."});
+  }
+
   parentDir?.directories.push(id);
   dirsData.push({
     id,
     name: dirname,
-    userId:uid,
+    userId,
     parentDirId: dirParentId,
     files: [],
     directories: [],
@@ -70,11 +73,13 @@ router.get("{/:id}", async (req, res) => {
 // UPDATE
 router.patch("/:dirId", async (req, res) => {
   const { dirId } = req.params;
+  const {id:userId} = req.user
   const { newDirName } = req.body;
   const srcPath = getSrcPath();
 
   const dirData = dirsData?.find((dir) => dir.id === dirId)!;
-  if(!dirData) res.status(404).json({message: "Directory not found!"})
+  if(!dirData) return res.status(404).json({message: "Directory not found!"});
+  if(dirData.userId !== userId) return res.status(401).json({ message: "You don't have permission!" });
   dirData.name = newDirName;
   try {
     await writeFile(
@@ -91,13 +96,15 @@ router.patch("/:dirId", async (req, res) => {
 // DELETE
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
+  const {id:userId} = req.user
   const publicPath = getPublicPath();
   const srcPath = getSrcPath();
 
   const dirData = dirsData.find((dir) => dir.id === id);
-
+  if(!dirData) return res.status(404).json({message: "Directory not found!"});
+  if(dirData.userId !== userId) return res.status(401).json({ message: "You don't have permission!" });
   try {
-    dirData?.files.map((fileId) => {
+    dirData.files.map((fileId) => {
       filesData.map(async (file) => {
         if (file.id === fileId) {
           await rm(`${publicPath}/${fileId}${file.ext}`);
