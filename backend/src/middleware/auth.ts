@@ -15,7 +15,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const isUserExists = usersData.find((user) => user.id === uid);
 
   if (isUserExists) {
-
+    req.user = isUserExists;
     return next();
   } 
   return res.status(401).json({ error: "Unauthorised" });

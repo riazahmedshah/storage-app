@@ -12,7 +12,9 @@
     "userId": "a670e4a8-95b3-4fd3-a7fb-ee2a7086ec38",
     "parentDirId": null,
     "name": "root-test1@gmail.com",
-    "files": [],
+    "files": [
+      "27d210b4-6689-47d7-a41c-a57f8f3636b5"
+    ],
     "directories": [
       "dcd65705-9463-4b4e-9a45-7d7b9480fff1"
     ]

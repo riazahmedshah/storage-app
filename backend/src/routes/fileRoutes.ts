@@ -5,6 +5,8 @@ import filesDB from "../filesDB.json" with {type:'json'}
 import dirDb from "../directoriesDB.json" with {type: 'json'};
 import { dirEntry, fileEntry} from "../types/index.js"
 import {getPublicPath, getSrcPath} from "../utils/pathHelper.js";
+import { fileAccessCheck } from "../utils/fileAccessCheck.js";
+import { pipeline } from "node:stream/promises";
 
 const router:Router = Router();
 
@@ -12,9 +14,10 @@ const filesData = filesDB as fileEntry[];
 const dirsData = dirDb as dirEntry[];
 
 // CREATE
-router.post("/:parentDirId", async(req, res) => {
-  const {parentDirId} = req.params || dirsData[0]?.id;
-  const filename = req.header("filename") || 'untitled';
+router.post("{/:parentDirId}", async(req, res) => {
+  const {rootDirId} = req.user
+  const parentDirId = req.params.parentDirId || rootDirId;
+  const filename = req.header("filename");
 
   if(!filename) return res.status(404).json({msg:"Filename is missing"});
   if (!parentDirId) {
@@ -24,47 +27,32 @@ router.post("/:parentDirId", async(req, res) => {
   const fileID = crypto.randomUUID();
 
   const targetPath = getPublicPath(fileID);
-
+  const srcPath = getSrcPath();
   try {
     const fileHandle = await open(`${targetPath}${ext}`, 'w');
     const writeStream = fileHandle.createWriteStream();
 
+    await pipeline(req, writeStream)
     req.pipe(writeStream);
 
-    writeStream.on('error', (err) => {
-      console.error('WriteStream Error', err);
-      res.status(400).json({msg:'Failed to write file'});
-    });
-
-    writeStream.on('end', async() => {
-      filesData.push({
-        name: filename, 
-        id:fileID,
-        ext,
-        parentDirId
-      });
-
-      const parentDirData = dirsData.find((dir) => dir.id === parentDirId);
-      parentDirData?.files.push(fileID);
-      console.log(`File: ${filename} Uploaded successfully`);
-      const srcPath = getSrcPath();
-      await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
-      await writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2));
-    });
+    const newFile = { name: filename, id:fileID, ext, parentDirId }
+    const parentDirData = dirsData.find((dir) => dir.id === parentDirId);
+    parentDirData?.files.push(fileID);
+    
+    await Promise.all([
+      writeFile(`${srcPath}/filesDB.json`, JSON.stringify([...filesData, newFile], null, 2)),
+      writeFile(`${srcPath}/directoriesDB.json`, JSON.stringify(dirsData, null, 2))
+    ]);
     res.status(200).json({msg:`File ${filename} created successfully`});
-  } catch (error:any) {
-    if(error.code == 'ENOENT'){
-      console.error(error)
-      res.status(404).json({msg:`File ${filename} not found`});
-    }else{
+  } catch (error) {
       console.error(error);
-      res.status(500).json({ msg: "An internal error occurred" });
-    }
+      res.status(500).json({ msg: "Upload failed!" });
   }
 });
 
 // READ
-router.get('{/:id}', (req, res) => {
+router.get('/:id', (req, res) => {
+  const {id:userId} = req.user
   const { id } = req.params;
   const srcPath = getSrcPath();
 
@@ -72,16 +60,21 @@ router.get('{/:id}', (req, res) => {
   if (!fileData) {
     return res.status(404).send("File not found");
   }
+  const isFileAccessible = fileAccessCheck(res, userId, fileData.parentDirId, 
+    {msg:"Not Authorized to access this file."}
+  );
+  if (!isFileAccessible) return;
 
   if(req.query.action === 'download'){
     res.set('Content-Dispositon', 'attachment');
   }
-  res.sendFile(`${srcPath}/public/${id}${fileData?.ext}`);
+  res.sendFile(`${srcPath}/public/${id}${fileData.ext}`);
 });
 
 // UPADATE
 router.patch("/:id", async(req, res) => {
-  const {id} = req.params // 64113323-d41f-4af1-bd6f-697c70c22319
+  const {id} = req.params 
+  const {id:userId} = req.user;
   const {newFileName} = req.body;
 
   const targetPath = getPublicPath();
@@ -91,6 +84,10 @@ router.patch("/:id", async(req, res) => {
   if (!fileData) {
     return res.status(404).send("File not found");
   }
+  const isFileAccessible = fileAccessCheck(res, userId, fileData.parentDirId, 
+    {msg:"Not Authorized to UPDATE this file."}
+  );
+  if (!isFileAccessible) return;
   try {
     fileData.name = `${newFileName}${fileData.ext}`;
     await writeFile(`${srcPath}/filesDB.json`, JSON.stringify(filesData, null, 2));
@@ -111,11 +108,19 @@ router.patch("/:id", async(req, res) => {
 // DELETE
 router.delete("/:id", async(req, res) => {
   const {id} = req.params;
+  const {id:userId} = req.user;
   const publicPath = getPublicPath();
   const srcPath = getSrcPath();
 
   const fileIdx = filesData.findIndex((file) => file.id === id);
   const fileData = filesData[fileIdx];
+  if (!fileData) {
+    return res.status(404).send("File not found");
+  }
+  const isFileAccessible = fileAccessCheck(res, userId, fileData.parentDirId, 
+    {msg:"Not Authorized to DELETE this file."}
+  );
+  if (!isFileAccessible) return;
   try {
     await rm(
       `${publicPath}/${id}${fileData?.ext}`

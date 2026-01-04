@@ -15,8 +15,8 @@ const usersData = userDB as userEntry[];
 router.post("{/:dirParentId}", async (req, res) => {
   const {uid} = req.cookies;
   const userData = usersData.find((user) => user.id === uid);
-  const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId)!;
-  const dirParentId = req.params.dirParentId || userRootDir.id;
+  // const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId)!;
+  const dirParentId = req.params.dirParentId || userData?.rootDirId;
   // console.log(userRootDir.id,dirParentId);
   const dirname = req.header('dirname') || 'New Folder';
   const srcPath = getSrcPath();
@@ -48,16 +48,14 @@ router.post("{/:dirParentId}", async (req, res) => {
 // READ
 router.get("{/:id}", async (req, res) => {
   const { id } = req.params;
-  const {uid} = req.cookies;
+  const { id:userId, rootDirId } = req.user;
 
-  const userData = usersData.find((user) => user.id === uid);
-  const userRootDir = dirsData.find((dir) => dir.id === userData?.rootDirId);
-
+  const userRootDir = dirsData.find((dir) => dir.id === rootDirId);
   const dirData = id ? dirsData.find((dir) => dir.id === id) : userRootDir;
   if (!dirData)
     return res.status(404).json({ message: "Directory not found!" });
 
-  if(dirData.userId !== uid){
+  if(dirData.userId !== userId){
     return res.status(401).json({ message: "You don't have permission!" });
   }
   const filesInfo = dirData?.files.map((fileId) =>
