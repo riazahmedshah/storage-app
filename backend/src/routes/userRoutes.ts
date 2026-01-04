@@ -4,6 +4,7 @@ import dirDb from "../directoriesDB.json" with {type: 'json'}
 import { dirEntry, userEntry } from "../types/index.js";
 import { writeFile } from "node:fs/promises";
 import { getSrcPath } from "../utils/pathHelper.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 const router: Router = Router();
 
@@ -53,6 +54,16 @@ router.post('/login', (req, res) => {
   } catch{
     res.status(500).json({msg:"Something went wrong: LOGIN"});
   }
-})
+});
+
+router.get("/", authMiddleware, (req, res) => {
+  const {name, email} = req.user;
+
+  res.status(200).json({name, email});
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("uid");
+});
 
 export default router;
