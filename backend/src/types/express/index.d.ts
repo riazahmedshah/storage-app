@@ -1,10 +1,9 @@
-import { Db } from "mongodb"
-import { userEntry } from "../index.js"
+import { Document, WithId } from "mongodb"
 
 declare global{
   namespace Express{
     interface Request {
-      user:userEntry
+      user:WithId<Document>
     }
   }
 }

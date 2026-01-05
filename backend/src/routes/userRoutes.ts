@@ -65,9 +65,9 @@ router.post("/login", async (req, res) => {
     const user = await users.findOne({ email });
     if (!user || user.password !== password)
       return res.status(404).json({ msg: "Invalid credentials" });
-
+    console.log(user);
     const { password: _p, ...userSafe } = user;
-    res.cookie("uid", user.id, {
+    res.cookie("uid", user._id.toString(), {
       maxAge: 60 * 60 * 1000,
     });
     res.status(200).json({ userSafe });
