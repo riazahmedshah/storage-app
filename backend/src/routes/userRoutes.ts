@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
-import { Dirs, User } from "../configs/collections.js";
+import { Dirs, Users } from "../configs/collections.js";
 import { client } from "../configs/db.js";
 import { ObjectId } from "mongodb";
 
@@ -8,8 +8,8 @@ const router: Router = Router();
 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
-  const users = User();
   const dirs = Dirs();
+  const users = Users();
 
   const session = client.startSession();
   try {
@@ -61,7 +61,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const users = User();
+    const users = Users();
     const user = await users.findOne({ email });
     if (!user || user.password !== password)
       return res.status(404).json({ msg: "Invalid credentials" });

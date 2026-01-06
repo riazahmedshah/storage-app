@@ -1,7 +1,8 @@
+import { Directory, File, User } from "../types/dbTypes.js";
 import { getDB } from "./db.js";
 
-export const User = () => getDB().collection("users");
+export const Users = () => getDB().collection<User>("users");
 
-export const Dirs = () => getDB().collection("directories");
+export const Dirs = () => getDB().collection<Directory>("directories");
 
-export const Files = () => getDB().collection("files");
+export const Files = () => getDB().collection<File>("files");

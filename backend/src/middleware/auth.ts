@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 
-import { User } from "../configs/collections.js";
+import { Users } from "../configs/collections.js";
 import { ObjectId } from "mongodb";
 
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const { uid } = req.cookies;
-  const users = User();
+  const users = Users();
   if (!uid) {
     return res.status(401).json({ error: "No authentication cookie found" });
   }
