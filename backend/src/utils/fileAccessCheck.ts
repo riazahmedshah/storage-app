@@ -1,18 +1,19 @@
 import { Response } from "express";
-import dirDb from "../directoriesDB.json" with {type: 'json'};
-import { dirEntry } from "../types/index.js";
+import { ObjectId } from "mongodb";
+import { Dirs } from "../configs/collections.js";
 
-const dirsData = dirDb as dirEntry[];
-
-export function fileAccessCheck(
-  res:Response, parentDirId:string, 
-  userId:string, 
-  message: Record<string,string>): boolean{
-  const fileParentDir = dirsData.find((dir) => dir.id === parentDirId);
-  if(!fileParentDir || fileParentDir.userId !== userId){
+export async function fileAccessCheck(
+  res: Response,
+  parentDirId: ObjectId,
+  userId: ObjectId,
+  message: Record<string, string>
+): Promise<boolean> {
+  const dirs = Dirs();
+  const fileParentDir = await dirs.findOne({ _id: parentDirId });
+  if (!fileParentDir || fileParentDir.userId.toString() !== userId.toString()) {
     res.status(401).json(message);
-    return false
-  };
+    return false;
+  }
 
   return true;
 }

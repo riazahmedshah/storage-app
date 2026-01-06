@@ -5,8 +5,6 @@ export interface Directory{
   name: string;
   userId: ObjectId;
   parentDirId: ObjectId | null;
-  files: ObjectId[];
-  directories: ObjectId[];
 };
 
 export interface File{
@@ -17,7 +15,7 @@ export interface File{
 };
 
 export interface User{
-  _id?:ObjectId;
+  _id:ObjectId;
   rootDirId:ObjectId;
   name:string;
   email:string;

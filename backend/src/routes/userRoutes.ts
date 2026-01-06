@@ -1,8 +1,9 @@
 import { Router } from "express";
+import { ObjectId } from "mongodb";
+
 import { authMiddleware } from "../middleware/auth.js";
 import { Dirs, Users } from "../configs/collections.js";
 import { client } from "../configs/db.js";
-import { ObjectId } from "mongodb";
 
 const router: Router = Router();
 
@@ -40,9 +41,7 @@ router.post("/register", async (req, res) => {
         _id: rootDirId,
         name: `root-${email}`,
         userId,
-        parentDirId: null,
-        files: [],
-        directories: [],
+        parentDirId: null
       },
       { session }
     );
