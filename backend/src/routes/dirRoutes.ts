@@ -1,6 +1,10 @@
+import { rm } from "node:fs/promises";
+
 import { Router } from "express";
-import { Dirs, Files } from "../configs/collections.js";
 import { ObjectId } from "mongodb";
+
+import { Dirs, Files } from "../configs/collections.js";
+import { getPublicPath } from "../utils/pathHelper.js";
 
 const router: Router = Router();
 
@@ -85,55 +89,48 @@ router.patch("/:dirId", async (req, res) => {
 });
 
 // DELETE
-// router.delete("/:dirId", async (req, res) => {
-//   const { dirId } = req.params;
-//   const {_id:userId} = req.user
-//   const dirs = Dirs();
-//   const publicPath = getPublicPath();
-//   const srcPath = getSrcPath();
+router.delete("/:dirId", async (req, res) => {
+  const { dirId } = req.params;
+  const { _id: userId } = req.user;
+  const publicPath = getPublicPath();
+  const dirs = Dirs();
+  const files = Files();
 
-//   try {
-//   const dirData = await dirs.findOne({_id: new ObjectId(dirId)});
-//   if(!dirData) return res.status(404).json({message: "Directory not found!"});
-//   if(dirData.userId !== userId) return res.status(401).json({ message: "You don't have permission!" });
+  try {
+    const dirData = await dirs.findOne({ _id: new ObjectId(dirId) });
+    if (!dirData)
+      return res.status(404).json({ message: "Directory not found!" });
+    if (dirData.userId.toString() !== userId.toString())
+      return res.status(401).json({ message: "You don't have permission!" });
 
-//     dirData.files.map((fileId) => {
-//       filesData.map(async (file) => {
-//         if (file.id === fileId) {
-//           await rm(`${publicPath}/${fileId}${file.ext}`);
-//         }
-//       });
-//       filesData = filesData?.filter((file) => file.id !== fileId);
-//       // dirData.files = dirData.files.filter((id) => id !== fileId);
-//     });
+    const filesData = await files.find({parentDirId: new ObjectId(dirId)}).toArray();
+    if(filesData){
+      filesData.map(async (file) => {
+        await rm(`${publicPath}/${file._id.toString()}${file.ext}`);
+      })
+    }
+    await files.deleteMany({parentDirId: new ObjectId(dirId)});
 
-//     dirData?.directories.map((dirId) => {
-//       dirsData = dirsData?.filter((dir) => dir.id !== dirId);
-//     });
+    await dirs.deleteMany({parentDirId: new ObjectId(dirId)});
+    if(dirData.parentDirId === null){
+      return res.status(200).json({
+      msg: `Root Directory Emptied successfully`,
+    });
+    }else{
+      await dirs.deleteOne({_id: new ObjectId(dirId)});
+    }
 
-//     const parentDir = dirsData.find(
-//       (parentdir) => parentdir.id === dirData?.parentDirId
-//     )!;
-//     dirsData = dirsData.filter((dir) => dir.id !== id);
-//     parentDir.directories = parentDir?.directories.filter(
-//       (chileId) => chileId !== id
-//     );
-
-//     await writeFile(
-//       `${srcPath}/filesDB.json`,
-//       JSON.stringify(filesData, null, 2)
-//     );
-//     await writeFile(
-//       `${srcPath}/directoriesDB.json`,
-//       JSON.stringify(dirsData, null, 2)
-//     );
-//     res.status(200).json({
-//       msg: `Dir ${dirData?.name} Deleted successfully`,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ msg: "SERIOUS FAILURE FROM DELETE DIR API" });
-//   }
-// });
+    res.status(200).json({
+      msg: `Dir ${dirData.name} Deleted successfully`,
+    });
+  } catch (error:any) {
+    if (error.code == "ENOENT") {
+      console.error(error);
+      res.status(404).json({ msg: `File not found` });
+    } else {
+      res.status(500).json({ msg: "SERIOUS FAILURE FROM DELETE DIR API" });
+    }
+  }
+});
 
 export default router;

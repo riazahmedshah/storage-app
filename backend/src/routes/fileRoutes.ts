@@ -129,7 +129,7 @@ router.delete("/:id", async (req, res) => {
       console.error(error);
       res.status(404).json({ msg: `File not found` });
     } else {
-      res.status(500).json({ msg: "An internal error occurred in trash API" });
+      res.status(500).json({ msg: "An internal error occurred in delete API" });
     }
   }
 });
