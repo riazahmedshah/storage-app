@@ -7,7 +7,7 @@ import { ObjectId } from "mongodb";
 
 import { getPublicPath, getSrcPath } from "../utils/pathHelper.js";
 import { fileAccessCheck } from "../utils/fileAccessCheck.js";
-import { Files } from "../configs/collections.js";
+import { Dirs, Files } from "../configs/collections.js";
 
 const router: Router = Router();
 
@@ -17,10 +17,20 @@ router.post("{/:parentDirId}", async (req, res) => {
   const parentDirId = new ObjectId(req.params.parentDirId) || rootDirId;
   const filename = req.header("filename");
   const files = Files();
+  const dirs = Dirs();
   if (!filename) return res.status(404).json({ msg: "Filename is missing" });
-
   const ext = path.extname(filename);
   try {
+    const fileParentDir = await dirs.findOne({_id: parentDirId});
+    if(!fileParentDir) return res.status(404).json({msg:"This does'n make sense"});
+    const isFileAccessible = await fileAccessCheck(
+      res,
+      parentDirId,
+      fileParentDir.userId,
+      { msg: "Not Authorized to Create file in this Parent Directory." }
+    );
+
+    if(!isFileAccessible) return;
     const file = await files.insertOne({
       name: filename,
       ext,
@@ -53,8 +63,8 @@ router.get("/:fileId", async (req, res) => {
   }
   const isFileAccessible = await fileAccessCheck(
     res,
-    userId,
     fileData.parentDirId,
+    userId,
     { msg: "Not Authorized to access this file." }
   );
   if (!isFileAccessible) return;
@@ -79,8 +89,8 @@ router.patch("/:fileId", async (req, res) => {
     }
     const isFileAccessible = await fileAccessCheck(
       res,
-      userId,
       fileData.parentDirId,
+      userId,
       { msg: "Not Authorized to UPDATE this file." }
     );
     if (!isFileAccessible) return;
@@ -112,8 +122,8 @@ router.delete("/:id", async (req, res) => {
     }
     const isFileAccessible = await fileAccessCheck(
       res,
-      userId,
       fileData.parentDirId,
+      userId,
       { msg: "Not Authorized to DELETE this file." }
     );
     if (!isFileAccessible) return;

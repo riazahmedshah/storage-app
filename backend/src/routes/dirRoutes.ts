@@ -97,33 +97,48 @@ router.delete("/:dirId", async (req, res) => {
   const files = Files();
 
   try {
-    const dirData = await dirs.findOne({ _id: new ObjectId(dirId) });
-    if (!dirData)
+    const parentDirData = await dirs.findOne({ _id: new ObjectId(dirId) });
+    if (!parentDirData)
       return res.status(404).json({ message: "Directory not found!" });
-    if (dirData.userId.toString() !== userId.toString())
+    if (parentDirData.userId.toString() !== userId.toString())
       return res.status(401).json({ message: "You don't have permission!" });
 
-    const filesData = await files.find({parentDirId: new ObjectId(dirId)}).toArray();
-    if(filesData){
-      filesData.map(async (file) => {
-        await rm(`${publicPath}/${file._id.toString()}${file.ext}`);
-      })
-    }
-    await files.deleteMany({parentDirId: new ObjectId(dirId)});
+    async function getNestedContent(id: ObjectId) {
+      let filesData = await files
+        .find({ parentDirId: id }, { projection: { ext: 1 } })
+        .toArray();
+      let dirsData = await dirs
+        .find({ parentDirId: id }, { projection: { name: 1 } })
+        .toArray();
 
-    await dirs.deleteMany({parentDirId: new ObjectId(dirId)});
-    if(dirData.parentDirId === null){
-      return res.status(200).json({
-      msg: `Root Directory Emptied successfully`,
-    });
-    }else{
-      await dirs.deleteOne({_id: new ObjectId(dirId)});
+      for (const { _id } of dirsData) {
+        const { dirsData: childDirs, filesData: childFiles } =
+          await getNestedContent(_id);
+
+        filesData = [...filesData, ...childFiles];
+        dirsData = [...dirsData, ...childDirs];
+      }
+
+      return { filesData, dirsData };
     }
 
-    res.status(200).json({
-      msg: `Dir ${dirData.name} Deleted successfully`,
-    });
-  } catch (error:any) {
+    const { filesData, dirsData } = await getNestedContent(new ObjectId(dirId));
+    // console.log(filesData, dirsData);
+    if (filesData.length > 0) {
+      await Promise.all(
+        filesData.map((file) => rm(`${publicPath}/${file._id}${file.ext}`))
+      );
+    }
+
+    await files.deleteMany({ _id: { $in: filesData.map((file) => file._id) } });
+    await dirs.deleteMany({ _id: { $in: dirsData.map((dir) => dir._id) } });
+
+    if (parentDirData.parentDirId !== null) {
+      await dirs.deleteOne({ _id: new ObjectId(dirId) });
+      return res.status(200).json({ msg: `Dir ${parentDirData.name} deleted` });
+    }
+    res.status(200).json({ msg: "Root Directory emptied" });
+  } catch (error: any) {
     if (error.code == "ENOENT") {
       console.error(error);
       res.status(404).json({ msg: `File not found` });
