@@ -19,6 +19,7 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
-    "mongodb": "^7.0.0"
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.1.5"
   }
 }

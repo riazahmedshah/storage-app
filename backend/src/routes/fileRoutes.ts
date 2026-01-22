@@ -1,147 +1,23 @@
-import { open, rm } from "node:fs/promises";
-import path from "node:path";
-import { pipeline } from "node:stream/promises";
-
 import { Router } from "express";
-import { ObjectId } from "mongodb";
-
-import { getPublicPath, getSrcPath } from "../utils/pathHelper.js";
-import { fileAccessCheck } from "../utils/fileAccessCheck.js";
-import { Dirs, Files } from "../configs/collections.js";
+import {
+  createFile,
+  deleteFile,
+  getFile,
+  updateFile,
+} from "../controllers/file.controller.js";
 
 const router: Router = Router();
 
 // CREATE
-router.post("{/:parentDirId}", async (req, res) => {
-  const { rootDirId } = req.user;
-  const parentDirId = new ObjectId(req.params.parentDirId) || rootDirId;
-  const filename = req.header("filename");
-  const files = Files();
-  const dirs = Dirs();
-  if (!filename) return res.status(404).json({ msg: "Filename is missing" });
-  const ext = path.extname(filename);
-  try {
-    const fileParentDir = await dirs.findOne({_id: parentDirId});
-    if(!fileParentDir) return res.status(404).json({msg:"This does'n make sense"});
-    const isFileAccessible = await fileAccessCheck(
-      res,
-      parentDirId,
-      fileParentDir.userId,
-      { msg: "Not Authorized to Create file in this Parent Directory." }
-    );
-
-    if(!isFileAccessible) return;
-    const file = await files.insertOne({
-      name: filename,
-      ext,
-      parentDirId,
-    });
-
-    const targetPath = getPublicPath(file.insertedId.toString());
-
-    const fileHandle = await open(`${targetPath}${ext}`, "w");
-    const writeStream = fileHandle.createWriteStream();
-
-    await pipeline(req, writeStream);
-    res.status(200).json({ msg: `File ${filename} created successfully` });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Upload failed!" });
-  }
-});
+router.post("{/:parentDirId}", createFile);
 
 // READ
-router.get("/:fileId", async (req, res) => {
-  const { _id: userId } = req.user;
-  const { fileId } = req.params;
-  const srcPath = getSrcPath();
-  const files = Files();
-
-  const fileData = await files.findOne({ _id: new ObjectId(fileId) });
-  if (!fileData) {
-    return res.status(404).send("File not found");
-  }
-  const isFileAccessible = await fileAccessCheck(
-    res,
-    fileData.parentDirId,
-    userId,
-    { msg: "Not Authorized to access this file." }
-  );
-  if (!isFileAccessible) return;
-
-  if (req.query.action === "download") {
-    res.set("Content-Dispositon", "attachment");
-  }
-  res.sendFile(`${srcPath}/public/${fileId}${fileData.ext}`);
-});
+router.get("/:fileId", getFile);
 
 // UPADATE
-router.patch("/:fileId", async (req, res) => {
-  const { fileId } = req.params;
-  const { _id: userId } = req.user;
-  const { newFilename } = req.body;
-  const files = Files();
-
-  try {
-    const fileData = await files.findOne({ _id: new ObjectId(fileId) });
-    if (!fileData) {
-      return res.status(404).send("File not found");
-    }
-    const isFileAccessible = await fileAccessCheck(
-      res,
-      fileData.parentDirId,
-      userId,
-      { msg: "Not Authorized to UPDATE this file." }
-    );
-    if (!isFileAccessible) return;
-    await files.updateOne(
-      { _id: new ObjectId(fileId) },
-      { $set: { name: `${newFilename}${fileData.ext}` } }
-    );
-
-    res.status(200).json({
-      msg: `File Renamed successfully to ${newFilename}${fileData.ext}`,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ msg: "An internal error occurred" });
-  }
-});
+router.patch("/:fileId", updateFile);
 
 // DELETE
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-  const { _id: userId } = req.user;
-  const publicPath = getPublicPath();
-  const srcPath = getSrcPath();
-  const files = Files();
-  try {
-    const fileData = await files.findOne({ _id: new ObjectId(id) });
-    if (!fileData) {
-      return res.status(404).send("File not found");
-    }
-    const isFileAccessible = await fileAccessCheck(
-      res,
-      fileData.parentDirId,
-      userId,
-      { msg: "Not Authorized to DELETE this file." }
-    );
-    if (!isFileAccessible) return;
-    await rm(`${publicPath}/${id}${fileData.ext}`);
-
-    await files.deleteOne({ _id: new ObjectId(id) });
-
-    res.status(200).json({
-      msg: `File ${fileData?.name} Deleted successfully`,
-    });
-  } catch (error: any) {
-    if (error.code == "ENOENT") {
-      console.error(error);
-      res.status(404).json({ msg: `File not found` });
-    } else {
-      res.status(500).json({ msg: "An internal error occurred in delete API" });
-    }
-  }
-});
+router.delete("/:id", deleteFile);
 
 export default router;
