@@ -22,7 +22,8 @@ const fileSchema = new Schema<IFile>({
   },
   parentDirId:{
     type:Schema.Types.ObjectId,
-    required:true
+    required:true,
+    ref:'Directory'
   }
 });
 

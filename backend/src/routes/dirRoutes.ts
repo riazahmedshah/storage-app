@@ -1,23 +1,23 @@
-import { Router } from "express";
-import {
-  createDirectory,
-  deleteDirectory,
-  getDirectory,
-  updateDirectory,
-} from "../controllers/directory.controller.js";
+// import { Router } from "express";
+// import {
+//   createDirectory,
+//   deleteDirectory,
+//   getDirectory,
+//   updateDirectory,
+// } from "../controllers/directory.controller.js";
 
-const router: Router = Router();
+// const router: Router = Router();
 
-// CREATE
-router.post("{/:dirParentId}", createDirectory);
+// // CREATE
+// router.post("{/:dirParentId}", createDirectory);
 
-// READ
-router.get("{/:dirId}", getDirectory);
+// // READ
+// router.get("{/:dirId}", getDirectory);
 
-// UPDATE
-router.patch("/:dirId", updateDirectory);
+// // UPDATE
+// router.patch("/:dirId", updateDirectory);
 
-// DELETE
-router.delete("/:dirId", deleteDirectory);
+// // DELETE
+// router.delete("/:dirId", deleteDirectory);
 
-export default router;
+// export default router;

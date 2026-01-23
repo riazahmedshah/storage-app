@@ -1,27 +1,22 @@
-import { MongoClient, Db } from "mongodb";
-
-export const client = new MongoClient("mongodb://127.0.0.1:27017/vfs");
-
-let db: Db;
+import mongoose from "mongoose";
 
 export async function connectDB() {
-  if (db) return db;
-
-  await client.connect();
-  db = client.db(); // uses "vfs" from URI
-  console.log("MongoDB connected");
-  return db;
-}
-
-export function getDB() {
-  if (!db) {
-    throw new Error("DB not initialized!!");
+  try {
+    const client = await mongoose.connect("mongodb://127.0.0.1:27017/vfs",{
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family:4
+    });
+  
+    console.log(`MongoDB Connected: ${client.connection.host}`);
+  } catch (error) {
+    console.error(`Error: ${error instanceof Error ? error.message : error}`);
+    process.exit(1);
   }
-  return db;
 }
 
 process.on("SIGINT", async () => {
-  console.log("Mongo client disconnected!");
-  await client.close();
+  await mongoose.connection.close();
+  console.log('Mongoose connection closed!');
   process.exit(0);
 });

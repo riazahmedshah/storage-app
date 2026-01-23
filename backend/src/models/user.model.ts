@@ -1,6 +1,6 @@
-import { Document, model, Schema, Types } from "mongoose";
+import { model, Schema, Types } from "mongoose";
 
-export interface IUser extends Document {
+export interface IUser {
   name:string;
   email:string;
   password:string;
@@ -29,7 +29,8 @@ const userSchema = new Schema<IUser>({
   },
   rootDirId:{
     type:Schema.Types.ObjectId,
-    required:true
+    required:true,
+    ref:'Directory'
   }
 },{
   timestamps: true,
