@@ -11,6 +11,7 @@ export interface IDirectory extends Document {
 const directorySchema = new Schema<IDirectory>({
   name:{
     type: String,
+    default: "New Folder",
     required: true,
     trim: true
   },

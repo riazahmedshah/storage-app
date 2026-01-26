@@ -1,23 +1,23 @@
-// import { Router } from "express";
-// import {
-//   createFile,
-//   deleteFile,
-//   getFile,
-//   updateFile,
-// } from "../controllers/file.controller.js";
+import { Router } from "express";
+import {
+  createFile,
+  deleteFile,
+  getFile,
+  updateFile,
+} from "../controllers/file.controller.js";
 
-// const router: Router = Router();
+const router: Router = Router();
 
-// // CREATE
-// router.post("{/:parentDirId}", createFile);
+// CREATE
+router.post("{/:parentDirId}", createFile);
 
-// // READ
-// router.get("/:fileId", getFile);
+// READ
+router.get("/:fileId", getFile);
 
-// // UPADATE
-// router.patch("/:fileId", updateFile);
+// UPADATE
+router.patch("/:fileId", updateFile);
 
-// // DELETE
-// router.delete("/:id", deleteFile);
+// DELETE
+router.delete("/:fileId", deleteFile);
 
-// export default router;
+export default router;

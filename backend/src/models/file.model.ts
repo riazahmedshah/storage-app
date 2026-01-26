@@ -25,6 +25,9 @@ const fileSchema = new Schema<IFile>({
     required:true,
     ref:'Directory'
   }
+},{
+  timestamps: true,
+  versionKey: false
 });
 
 export const File = model<IFile>("File", fileSchema);

@@ -7,6 +7,6 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
   }
 }

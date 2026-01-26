@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx watch --env-file=.env src/main.ts"
   },
   "author": "",
   "license": "ISC",
@@ -19,7 +19,6 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
-    "mongodb": "^7.0.0",
     "mongoose": "^9.1.5"
   }
 }

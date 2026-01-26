@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { User } from "../models/user.model.js";
 import { Directory } from "../models/directory.model.js";
 import { AppError } from "../utils/AppError.js";
+import { error } from "node:console";
 
 export const createUser = async (
   req:Request,
@@ -47,17 +48,6 @@ export const createUser = async (
     if(session.inTransaction()){
       await session.abortTransaction();
     }
-      if (error.code === 121 && error.errInfo?.details) {
-      console.log("--- VALIDATION FAILED ---");
-      // This prints the whole nested object properly
-      console.dir(error.errInfo.details, { depth: null, colors: true });
-      
-      // Specifically looking for the rules that failed
-      const schemaErrors = error.errInfo.details.schemaRulesNotSatisfied;
-      console.log("Failing Rules:", JSON.stringify(schemaErrors, null, 2));
-    } else {
-      console.log(error);
-    }
     next(error);
   } finally {
     await session.endSession();
@@ -66,21 +56,22 @@ export const createUser = async (
 
 export const login = async (
   req:Request,
-  res:Response
+  res:Response,
+  next:NextFunction
 ) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user || user.password !== password)
-      return res.status(404).json({ msg: "Invalid credentials" });
-    console.log(user);
-    const { password: _p, ...userSafe } = user;
+    if (!user || user.password !== password){
+      throw new AppError("Invalid credentials", 401);
+    }
+    const { password: _p, ...userSafe } = user.toObject();
     res.cookie("uid", user._id.toString(), {
       maxAge: 60 * 60 * 1000,
     });
     res.status(200).json({ userSafe });
-  } catch {
-    res.status(500).json({ msg: "Something went wrong: LOGIN" });
+  } catch(error) {
+    next(error)
   }
 }
 
