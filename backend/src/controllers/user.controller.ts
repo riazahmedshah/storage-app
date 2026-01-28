@@ -2,11 +2,11 @@ import { Buffer } from "node:buffer";
 
 import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
+import bcrypt from "bcrypt";
 
 import { User } from "../models/user.model.js";
 import { Directory } from "../models/directory.model.js";
 import { AppError } from "../utils/AppError.js";
-import { createHash } from "node:crypto";
 
 export const createUser = async (
   req: Request,
@@ -23,13 +23,15 @@ export const createUser = async (
       throw new AppError("This email is already registered.", 409);
     }
 
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     const userId = new mongoose.Types.ObjectId();
     const rootDirId = new mongoose.Types.ObjectId();
     const newUser = new User({
       _id: userId,
       name,
       email,
-      password,
+      password: hashedPassword,
       rootDirId,
     });
 
@@ -64,7 +66,12 @@ export const login = async (
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
+    if (!user) {
+      throw new AppError("No user found", 404);
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if(!isPasswordMatch){
       throw new AppError("Invalid credentials", 401);
     }
     const { password: _p, ...userSafe } = user.toObject();
@@ -73,16 +80,12 @@ export const login = async (
       expiry: Math.round(Date.now() / 1000 + 60).toString(16),
     };
 
-    const singedCookie = createHash("sha256")
-      .update(JSON.stringify(cookiePayload))
-      .update(process.env.SECRET!)
-      .digest('base64url');
-
     const base64Cookie = Buffer.from(JSON.stringify(cookiePayload)).toString(
       "base64url",
     );
-    res.cookie("token", `${base64Cookie}.${singedCookie}`, {
-      maxAge: 60 * 60 * 1000 * 7 * 24,
+    res.cookie("token", base64Cookie, {
+      signed: true,
+      maxAge: 60 * 60 * 1000 * 7 * 24
     });
     res.status(200).json({ userSafe });
   } catch (error) {

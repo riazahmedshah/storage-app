@@ -12,11 +12,10 @@ const app = express();
 const PORT = 4000;
 
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.SECRET));
 
 app.use("/dirs", authMiddleware, dirRoutes);
 app.use("/files", authMiddleware, fileRoutes);
-app.post("/test", (req, res) => res.send("Server is reaching app.js"));
 app.use("/users", userRoutes);
 
 app.use(errorHandler);
