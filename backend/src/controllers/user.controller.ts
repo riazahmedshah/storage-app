@@ -29,16 +29,17 @@ export const googleAuth = async (
     const existingUser = await User.findOne({ email }).select('_id')
 
     if(existingUser){
-      const session = await checkSession(existingUser._id);
-      if(!session){ 
-        const sessionID = await createSession(existingUser._id);
-        const base64String = toBase64(sessionID)
-        res.cookie("token", base64String, {
-          maxAge: 1000*60*60*24*7,
-          signed: true
-        });
-        return res.status(200).json({ data: existingUser });
+      let sessionID = await checkSession(existingUser._id);
+      if(!sessionID){ 
+        sessionID = await createSession(existingUser._id);
       }
+      const base64String = toBase64(sessionID)
+      res.cookie("token", base64String, {
+        maxAge: 1000*60*60*24*7,
+        signed: true,
+        httpOnly: true
+      });
+      return res.status(200).json({ data: existingUser });
     } else{
       transaction.startTransaction();
       
@@ -83,6 +84,29 @@ export const googleAuth = async (
   }
 
 };
+
+export const getAllUsers = async(req:Request, res:Response, next:NextFunction) => {
+  try {
+    const users = await User.find().lean();
+    if(!users) throw new AppError("Error finding users", 404);
+    const allSessions = await Session.find().lean();
+
+    const allSessionsUsersId = allSessions.map(({userId}) => userId.toString());
+
+    const allSessionsUsersIdSet = new Set(allSessionsUsersId);
+
+    const transformedUsers = users.map((user) => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isLoggedIn: allSessionsUsersIdSet.has(user._id.toString())
+    }))
+
+    res.status(200).json(transformedUsers);
+  } catch (error) {
+    next(error)
+  }
+}
 
 // export const createUser = async (
 //   req: Request,
