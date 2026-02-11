@@ -3,7 +3,7 @@ import { model, Schema, Types } from "mongoose";
 export interface IUser {
   name:string;
   email:string;
-  password:string;
+  profileImage:string;
   rootDirId: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -22,10 +22,8 @@ const userSchema = new Schema<IUser>({
     lowercase:true,
     trim:true
   },
-  password:{
-    type:String,
-    required:true,
-    trim:true,
+  profileImage:{
+    type:String
   },
   rootDirId:{
     type:Schema.Types.ObjectId,

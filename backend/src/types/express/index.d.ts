@@ -1,10 +1,11 @@
 import { Document, WithId } from "mongodb"
-import { User } from "../dbTypes.ts"
+import { IUser } from "../../models/user.model.ts"
+
 
 declare global{
   namespace Express{
     interface Request {
-      user:User
+      user:IUser
     }
   }
 }

@@ -13,7 +13,7 @@ const applySchemaValidation = async () => {
         collMod: "users",
         validator: {
           $jsonSchema: {
-            required: ["_id", "name", "email", "password", "rootDirId"],
+            required: ["_id", "name", "email", "profileImage", "rootDirId"],
             properties: {
               _id: {
                 bsonType: "objectId",
@@ -29,11 +29,8 @@ const applySchemaValidation = async () => {
                 pattern: "^[\\w.-]+@([\\w-]+\\.)+[\\w-]{2,4}$",
                 description: "Email must be in valid format",
               },
-              password: {
-                bsonType: "string",
-                minLength: 4,
-                description:
-                  "Password must be a string with atleast 6 characters",
+              profileImage: {
+                bsonType: "string"
               },
               rootDirId: {
                 bsonType: "objectId",
