@@ -15,7 +15,7 @@ const sessionSchema = new Schema<ISession>({
   createdAt:{
     type: Date,
     default: Date.now,
-    expires: 60
+    expires: 60 * 60
   }
 });
 

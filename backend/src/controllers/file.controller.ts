@@ -31,7 +31,17 @@ export const createFile = async (
     const fileHandle = await open(`${targetPath}${ext}`, "w");
     const writeStream = fileHandle.createWriteStream();
 
-    await pipeline(req, writeStream);
+    let lengthOfFile = 0;
+    async function* process(source: AsyncIterable<Buffer>){
+      for await (const chunk of source){
+        lengthOfFile += chunk.byteLength;
+        yield chunk;
+      }
+    }
+
+    await pipeline(req, process, writeStream);
+    console.log(`Final File Size: ${lengthOfFile} bytes`);
+    console.log(`In MB: ${(lengthOfFile / (1024 * 1024)).toFixed(2)} MB`);
     res.status(200).json({ msg: `File ${filename} created successfully` });
   } catch (error) {
     next(error);

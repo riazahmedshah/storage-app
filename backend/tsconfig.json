@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -8,5 +7,11 @@
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
+  },
+  "watchOptions": {
+    "excludeDirectories": [
+      "**/node_modules",
+      "dist"
+    ]
   }
 }

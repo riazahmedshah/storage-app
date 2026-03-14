@@ -1,10 +1,12 @@
 import { model, Schema, Types } from "mongoose";
 
 export interface IUser {
+  _id:Types.ObjectId;
   name:string;
   email:string;
   profileImage:string;
   rootDirId: Types.ObjectId;
+  role: 'USER' | 'ADMIN' | 'MANAGER'
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,11 @@ const userSchema = new Schema<IUser>({
     type:Schema.Types.ObjectId,
     required:true,
     ref:'Directory'
+  },
+  role:{
+    type:String,
+    enum:["ADMIN","USER","MANAGER"],
+    default: 'USER'
   }
 },{
   timestamps: true,

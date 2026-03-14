@@ -36,6 +36,9 @@ const applySchemaValidation = async () => {
                 bsonType: "objectId",
                 description: "rootDirId must be a valid ObjectId",
               },
+              role:{
+                enum:["ADMIN","USER","MANAGER"]
+              },
               createdAt: { bsonType: "date" },
               updatedAt: { bsonType: "date" }
             },
