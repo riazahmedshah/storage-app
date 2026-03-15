@@ -6,11 +6,9 @@ import dirRoutes from "./routes/dirRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import { authMiddleware } from "./middleware/auth.js";
-import { connectDB } from "./configs/db.js";
 import { errorHandler } from "./utils/errorHandler.js";
 import { authRouter } from "./routes/authRoutes.js";
-import {db} from "./configs/drizzle.js"
-import { usersTable } from "./db/schema.js";
+import "./configs/drizzle.js";
 const app = express();
 
 const PORT = 4000;
@@ -22,22 +20,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser(process.env.SECRET));
 
-await db.insert(usersTable).values({
-  name:"Riyaz",
-  email:"riyaz@gmail.com",
-  age:28
+app.use("/api/dirs", authMiddleware, dirRoutes);
+app.use("/api/files", authMiddleware, fileRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRouter);
+
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`server is running on http://localhost:${PORT}`);
 });
-
-console.log('New user created!')
-
-
-
-// app.use("/api/dirs", authMiddleware, dirRoutes);
-// app.use("/api/files", authMiddleware, fileRoutes);
-// app.use("/api/users", userRoutes);
-// app.use("/api/auth", authRouter);
-
-// app.use(errorHandler);
 
 // connectDB()
 //   .then(() => {
@@ -50,7 +42,3 @@ console.log('New user created!')
 //     console.error("DB connection failed", err);
 //     process.exit(1);
 //   });
-
-app.listen(PORT, () => {
-  console.log(`server is running on http://localhost:${PORT}`);
-});

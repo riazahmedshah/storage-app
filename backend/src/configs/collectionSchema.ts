@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { connectDB } from "./db.js";
+import { connectDB } from "./drizzle.js";
 
 const applySchemaValidation = async () => {
   await connectDB()
