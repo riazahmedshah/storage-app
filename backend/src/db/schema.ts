@@ -63,16 +63,16 @@ export const filesTable = pgTable("files", {
 export const relation = defineRelations({ usersTable, directoriesTable, filesTable, userStorageTable }, (r) => ({
   usersTable: {
     directories: r.many.directoriesTable({
-      from: r.directoriesTable.userId,
-      to: r.usersTable.id
+      from: r.usersTable.id,           
+      to: r.directoriesTable.userId    
     }),
     files: r.many.filesTable({
-      from: r.filesTable.userId,
-      to: r.usersTable.id
+      from: r.usersTable.id,           
+      to: r.filesTable.userId          
     }),
     storage: r.one.userStorageTable({
-      from: r.userStorageTable.userId,
-      to: r.usersTable.id
+      from: r.usersTable.id,           
+      to: r.userStorageTable.userId    
     })
   },
   directoriesTable: {
@@ -89,8 +89,8 @@ export const relation = defineRelations({ usersTable, directoriesTable, filesTab
       to: r.directoriesTable.parentDirId
     }),
     files: r.many.filesTable({
-      from: r.filesTable.parentDirId,
-      to: r.directoriesTable.id
+      from: r.directoriesTable.id,     
+      to: r.filesTable.parentDirId
     })
   },
   filesTable: {
@@ -103,7 +103,6 @@ export const relation = defineRelations({ usersTable, directoriesTable, filesTab
       to: r.usersTable.id
     }),
   },
-
   userStorageTable:{
     owner: r.one.usersTable({
       from: r.userStorageTable.userId,

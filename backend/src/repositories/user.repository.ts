@@ -10,7 +10,7 @@ export class UserRepository {
       const [user] = await tx.insert(usersTable).values(data).returning()
       
       await tx.insert(directoriesTable).values({
-        name: "Root",
+        name: `root-${user?.email}`,
         userId: user?.id!,
         parentDirId: null
       });
@@ -20,13 +20,13 @@ export class UserRepository {
   };
 
   async findUserById(userId: string){
-    const user = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
     return user || null;
   };
 
   async findUserByEmail(email:string){
-    const user = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
 
     return user || null;
   };

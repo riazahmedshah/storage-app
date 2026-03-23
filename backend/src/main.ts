@@ -4,7 +4,7 @@ import cors from "cors";
 
 import dirRoutes from "./routes/dirRoutes.js";
 import fileRoutes from "./routes/fileRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/user.routes.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { errorHandler } from "./utils/errorHandler.js";
 import { authRouter } from "./routes/authRoutes.js";
