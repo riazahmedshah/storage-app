@@ -5,6 +5,8 @@ import {
   getDirectory,
   updateDirectory,
 } from "../controllers/directory.controller.js";
+import { validateReqBody } from "../middleware/zod.middleware.js";
+import { updateDirSchema } from "../validators/dir.validators.js";
 
 const router: Router = Router();
 
@@ -15,7 +17,7 @@ router.post("{/:dirParentId}", createDirectory);
 router.get("{/:dirId}", getDirectory);
 
 // UPDATE
-router.patch("/:dirId", updateDirectory);
+router.patch("/:dirId", validateReqBody(updateDirSchema), updateDirectory);
 
 // DELETE
 router.delete("/:dirId", deleteDirectory);
