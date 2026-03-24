@@ -110,3 +110,5 @@ export const relation = defineRelations({ usersTable, directoriesTable, filesTab
     })
   }
 }));
+
+export type User = typeof usersTable.$inferSelect;

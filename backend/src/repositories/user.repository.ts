@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../configs/drizzle.js";
 import { directoriesTable, usersTable } from "../db/schema.js";
 
@@ -30,4 +30,23 @@ export class UserRepository {
 
     return user || null;
   };
+
+  async getUserWithRootDirId(userId: string){
+    const result = await db
+      .select({
+        user: usersTable,
+        rootDirectoryId: directoriesTable.id,
+      })
+      .from(usersTable)
+      .leftJoin(
+        directoriesTable,
+        and(
+          eq(directoriesTable.userId, usersTable.id),
+          isNull(directoriesTable.parentDirId)
+        )
+      )
+      .where(eq(usersTable.id, userId));
+
+    return result[0];
+  }
 }
